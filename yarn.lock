@@ -35,6 +35,11 @@ agent-base@6:
   dependencies:
     debug "4"
 
+arg@^4.1.0:
+  version "4.1.3"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/arg/-/arg-4.1.3.tgz#269fc7ad5b8e42cb63c896d5666017261c144089"
+  integrity sha1-Jp/HrVuOQstjyJbVZmAXJhwUQIk=
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -71,6 +76,11 @@ buffer-crc32@~0.2.3:
   version "0.2.13"
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/buffer-crc32/-/buffer-crc32-0.2.13.tgz#0d333e3f00eac50aa1454abd30ef8c2a5d9a7242"
   integrity sha1-DTM+PwDqxQqhRUq9MO+MKl2ackI=
+
+buffer-from@^1.0.0:
+  version "1.1.1"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
+  integrity sha1-MnE7wCj3XAL9txDXx7zsHyxgcO8=
 
 buffer@^5.2.1, buffer@^5.5.0:
   version "5.7.1"
@@ -113,6 +123,11 @@ concat-map@0.0.1:
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
   integrity sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=
 
+create-require@^1.1.0:
+  version "1.1.1"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/create-require/-/create-require-1.1.1.tgz#c1d7e8f1e5f6cfc9ff65f9cd352d37348756c333"
+  integrity sha1-wdfo8eX2z8n/ZfnNNS03NIdWwzM=
+
 css-select@^4.0.0:
   version "4.0.0"
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/css-select/-/css-select-4.0.0.tgz#9b7b53bd82e4b348a6e0924ce37645e5db43af8e"
@@ -140,6 +155,11 @@ devtools-protocol@0.0.854822:
   version "0.0.854822"
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/devtools-protocol/-/devtools-protocol-0.0.854822.tgz#eac3a5260a6b3b4e729a09fdc0c77b0d322e777b"
   integrity sha1-6sOlJgprO05ymgn9wMd7DTIud3s=
+
+diff@^4.0.1:
+  version "4.0.2"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/diff/-/diff-4.0.2.tgz#60f3aecb89d5fae520c11aa19efc2bb982aade7d"
+  integrity sha1-YPOuy4nV+uUgwRqhnvwruYKq3n0=
 
 dom-serializer@^1.0.1, dom-serializer@^1.3.1:
   version "1.3.1"
@@ -280,6 +300,11 @@ locate-path@^5.0.0:
   integrity sha1-Gvujlq/WdqbUJQTQpno6frn2KqA=
   dependencies:
     p-locate "^4.1.0"
+
+make-error@^1.1.1:
+  version "1.3.6"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/make-error/-/make-error-1.3.6.tgz#2eb2e37ea9b67c4891f684a1394799af484cf7a2"
+  integrity sha1-LrLjfqm2fEiR9oShOUeZr0hM96I=
 
 minimatch@^3.0.4:
   version "3.0.4"
@@ -427,6 +452,19 @@ safe-buffer@~5.2.0:
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/safe-buffer/-/safe-buffer-5.2.1.tgz#1eaf9fa9bdb1fdd4ec75f58f9cdb4e6b7827eec6"
   integrity sha1-Hq+fqb2x/dTsdfWPnNtOa3gn7sY=
 
+source-map-support@^0.5.17:
+  version "0.5.19"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/source-map-support/-/source-map-support-0.5.19.tgz#a98b62f86dcaf4f67399648c085291ab9e8fed61"
+  integrity sha1-qYti+G3K9PZzmWSMCFKRq56P7WE=
+  dependencies:
+    buffer-from "^1.0.0"
+    source-map "^0.6.0"
+
+source-map@^0.6.0:
+  version "0.6.1"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
+  integrity sha1-dHIq8y6WFOnCh6jQu95IteLxomM=
+
 string_decoder@^1.1.1:
   version "1.3.0"
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/string_decoder/-/string_decoder-1.3.0.tgz#42f114594a46cf1a8e30b0a84f56c78c3edac21e"
@@ -460,6 +498,23 @@ through@^2.3.8:
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/through/-/through-2.3.8.tgz#0dd4c9ffaabc357960b1b724115d7e0e86a2e1f5"
   integrity sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=
 
+ts-node@^9.1.1:
+  version "9.1.1"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/ts-node/-/ts-node-9.1.1.tgz#51a9a450a3e959401bda5f004a72d54b936d376d"
+  integrity sha1-UamkUKPpWUAb2l8ASnLVS5NtN20=
+  dependencies:
+    arg "^4.1.0"
+    create-require "^1.1.0"
+    diff "^4.0.1"
+    make-error "^1.1.1"
+    source-map-support "^0.5.17"
+    yn "3.1.1"
+
+typescript@^4.2.4:
+  version "4.2.4"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"
+  integrity sha1-hhC1l0feAo/aiYqK7w4QPxVtCWE=
+
 unbzip2-stream@^1.3.3:
   version "1.4.3"
   resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/unbzip2-stream/-/unbzip2-stream-1.4.3.tgz#b0da04c4371311df771cdc215e87f2130991ace7"
@@ -490,3 +545,8 @@ yauzl@^2.10.0:
   dependencies:
     buffer-crc32 "~0.2.3"
     fd-slicer "~1.1.0"
+
+yn@3.1.1:
+  version "3.1.1"
+  resolved "https://artifactory.softplan.com.br/artifactory/api/npm/npm/yn/-/yn-3.1.1.tgz#1e87401a09d767c1d5eab26a6e4c185182d2eb50"
+  integrity sha1-HodAGgnXZ8HV6rJqbkwYUYLS61A=
