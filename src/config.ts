@@ -4,5 +4,7 @@ export enum ProductTypeUrl {
   CORPO_SOL = 'https://www.marykay.com.br/pt-br/products/body-and-sun?iad=ProductShoppingGrid3Produtos_CorpoeSol&pagesize=0',
   FRAGRANCIAS = 'https://www.marykay.com.br/pt-br/products/fragrance?iad=productShoppingGrid4_Fragrancias&pagesize=0',
   HOMENS = 'https://www.marykay.com.br/pt-br/products/mens?iad=ProductShopGrid5_Homens&pagesize=0',
-  // PRESENTES = 'https://www.marykay.com.br/pt-br/products/gifts?iad=ProductShopGrid6_Presentes&pagesize=0',
+  PRESENTES = 'https://www.marykay.com.br/pt-br/products/gifts?iad=ProductShopGrid6_Presentes&pagesize=0',
 }
+
+export const BASE_TARGET_URL = "https://www.marykay.com.br"

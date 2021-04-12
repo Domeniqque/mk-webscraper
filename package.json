@@ -6,7 +6,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start:dev": "ts-node src/index.ts --transpile-only --exclude node_modules",
+    "start:dev": "ts-node src/index.ts --transpile-only",
     "build": "tsc --build",
     "clean": "tsc --build --clean"
   },
