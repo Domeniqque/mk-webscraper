@@ -1,25 +1,19 @@
-import $ from "cheerio";
-import { Browser } from "puppeteer";
-import { BASE_TARGET_URL, ProductTypeUrl } from "../config";
+import { Page } from "puppeteer";
+import { ProductTypeUrl } from "../config";
 
 
-export const extractProductLinksFromPage = async (pageUrl: ProductTypeUrl, browser: Browser) => {
-  const page = await browser.newPage();
+export const extractProductLinksFromPage = async (pageUrl: ProductTypeUrl, page: Page) => {
   await page.goto(pageUrl);
 
-  const html = await page.evaluate(() => document.body.innerHTML);
+  const anchorSelector = await page.evaluate(() => [
+    // carousel
+    ...Array.from(document.querySelectorAll<HTMLLinkElement>('.container.module.carousel-slider.responsive a:not(.carousel-control)')).map(a => a.href),
+    // grid
+    ...Array.from(document.querySelectorAll<HTMLLinkElement>('a.product-name')).map(a => a.href),
+  ]);
 
-  await page.close()
-
-  const anchorSelector = (pageUrl === ProductTypeUrl.PRESENTES) 
-    ? '.container.module.carousel-slider.responsive a:not(.carousel-control)' 
-    : 'a.product-name'
-
-  const productLinks: string[] = $(anchorSelector, html)
-    .map((_, el) => $(el).prop('href'))
-    .filter((_, link) => !!link.toString().match(/\/products/ig))
-    .map((_, link) => `${BASE_TARGET_URL}${link}`)
-    .get();
+  const productLinks: string[] = anchorSelector
+    .filter(link => !!link.toString().match(/\/products/ig))
 
   return productLinks
 }
