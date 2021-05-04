@@ -1,9 +1,20 @@
-import { Page } from "puppeteer";
+import { Browser } from "puppeteer";
 import { ProductTypeUrl } from "../config";
 
 
-export const extractProductLinksFromPage = async (pageUrl: ProductTypeUrl, page: Page) => {
-  await page.goto(pageUrl);
+export const extractProductLinksFromPage = async (pageUrl: ProductTypeUrl, browser: Browser) => {
+  const page = await browser.newPage();
+  await page.goto(pageUrl, { waitUntil: 'domcontentloaded'});
+
+  await page.setRequestInterception(true);
+
+  page.on('request', (request) => {
+    if (['image', 'websocket', 'font'].includes(request.resourceType())) {
+      return request.abort()
+    } else {
+      return request.continue()
+    }
+  })
 
   const anchorSelector = await page.evaluate(() => [
     // carousel

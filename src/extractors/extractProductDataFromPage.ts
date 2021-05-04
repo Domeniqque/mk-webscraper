@@ -2,6 +2,8 @@ import { Browser, Page } from "puppeteer";
 import cheerio from "cheerio";
 import { hashText } from "../utils/hashText";
 import { BASE_TARGET_URL } from "../config";
+import { logger } from "../utils/logger";
+import { getUniqueProductUrlId } from "../utils/getUniqueProductUrlId";
 
 interface IVariationData {
   size: string;
@@ -25,19 +27,40 @@ interface IProductData {
   pageUrl: string;
 }
 
-const getContentPage = async (pageUrl: string, page: Page) => {
-  console.log(pageUrl)
-  await page.goto(pageUrl);
+const getContentPage = async (pageUrl: string, browser: Browser) => {
+  let attempts = 0;
+  let page: Page = await browser.newPage();
+  
+  try {
+    attempts += 1;
+    
+    if (!page || page.isClosed()) {
+      page = await browser.newPage();
+    }
 
-  const [summary, category, productDetailsHtml] = await page.evaluate(() => [
-    document.querySelector<HTMLDivElement>('.description')?.innerText ?? "",
-    document.querySelector<HTMLDivElement>('.breadcrumb a')?.innerText ?? "",
-    document.querySelector('.container.module.product.product-detail')?.innerHTML ?? ""
-  ]);
+    logger.info(`getContentPage: ${pageUrl}`);
 
-  const $ = cheerio.load(productDetailsHtml);
+    await page.goto(pageUrl, { waitUntil: 'domcontentloaded' });
 
-  return { $, category, summary };
+    const [summary, category, productDetailsHtml] = await page.evaluate(() => [
+      document.querySelector<HTMLDivElement>('.description')?.innerText ?? "",
+      document.querySelector<HTMLDivElement>('.breadcrumb a')?.innerText ?? "",
+      document.querySelector('.container.module.product.product-detail')?.innerHTML ?? ""
+    ]);
+
+    const $ = cheerio.load(productDetailsHtml);
+
+    await page.close();
+
+    return { $, category, summary };
+  } catch (err) {
+    logger.error(err, `getContentPage: ${pageUrl}`);
+    await page.close();
+
+    if (attempts > 3) {
+      throw err;
+    }
+  }
 }
 
 const getVariantData = (pageUrl: string, $: cheerio.Root) => {
@@ -66,12 +89,14 @@ const getVariantData = (pageUrl: string, $: cheerio.Root) => {
   return variation;
 }
 
-export const extractProductDataFromPage = async (pageUrl: string, page: Page, exploredUrlVariants: Set<string>) => {
-  if (exploredUrlVariants.has(pageUrl)) {
-    return;
+export const extractProductDataFromPage = async (pageUrl: string, browser: Browser) => {
+  const contentPage = await getContentPage(pageUrl, browser);
+
+  if (!contentPage) {
+    throw new Error(`getContentPage: ${pageUrl}. Conteúdo invalido ou nao encontrado`)
   }
 
-  const { $, category, summary } = await getContentPage(pageUrl, page);
+  const { $, category, summary } = contentPage;
 
   const productId = $('input[type="hidden"]#PDP-ProductID').val()?.trim();
   const productName = $('.details h1').text()?.trim();
@@ -80,20 +105,23 @@ export const extractProductDataFromPage = async (pageUrl: string, page: Page, ex
   const $colorsVariants = $('ul.color-list a');
   const variantUrls = $colorsVariants.map((_, el) => `${BASE_TARGET_URL}${$(el).prop("href")}`).get() as string[];
 
-  const variations: IVariationData[] = [];
+  const variations: IVariationData[] = []
+  
+  for (const { variationUrl, i} of variantUrls.map((variationUrl, i) => ({ variationUrl, i }))) {
+    const isFirst = i === 0;
+    const $variationContent = isFirst ? $ : (await getContentPage(variationUrl, browser))?.$;
 
-  for (const [i, variationUrl] of variantUrls.entries()) {
-    const { $: $variationContent} = i === 0 ? { $ } : await getContentPage(variationUrl, page);
+    if (!$variationContent) {
+      throw new Error(`getContentPage: variationUrl: ${variationUrl}: Conteúdo do produto variante invalido ou nao encontrado`)
+    }
 
     const variationData = getVariantData(variationUrl, $variationContent);
-
     variations.push(variationData);
-    exploredUrlVariants.add(variationUrl);
   }
 
   const product: IProductData = {
     unique: hashText(productName),
-    sku: productId,
+    sku: productId as string,
     title: productName,
     summary,
     content,
@@ -102,9 +130,8 @@ export const extractProductDataFromPage = async (pageUrl: string, page: Page, ex
     pageUrl
   }
 
-  exploredUrlVariants.add(pageUrl);
-  
-  console.log(JSON.stringify(product, null, 2))
-
-  return product;
+  return { 
+    product, 
+    urls: [getUniqueProductUrlId(pageUrl), ...variantUrls.map(v => getUniqueProductUrlId(v))]
+  };
 }

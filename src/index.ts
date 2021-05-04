@@ -1,53 +1,86 @@
 import fs from 'fs/promises'
+import fastJson from 'fast-json-stringify';
+import path from 'path'
 
 import { configureBrowser } from './configureBrowser'
 import { ProductTypeUrl } from './config';
 import { extractProductLinksFromPage } from './extractors/extractProductLinksFromPage';
 import { extractProductDataFromPage } from './extractors/extractProductDataFromPage';
+import { logger } from './utils/logger';
+import { hashText } from './utils/hashText';
+import { getUniqueProductUrlId } from './utils/getUniqueProductUrlId';
+import { getFileName } from './utils/getFileName';
 
 const products = new Map();
 
 const startTracking = async () => {
-  const browser = await configureBrowser();
-  const page = await browser.newPage();
+  console.time('get_urls')
+  let browser = await configureBrowser();
+  let productLinks: Set<string> | null = new Set<string>();
 
-  // const productLinks = new Set([
-  //   ...await extractProductLinksFromPage(ProductTypeUrl.MAQUIAGEM, page),
-  //   ...await extractProductLinksFromPage(ProductTypeUrl.CUIDADOS_PELE, page),
-  //   ...await extractProductLinksFromPage(ProductTypeUrl.CORPO_SOL, page),
-  //   ...await extractProductLinksFromPage(ProductTypeUrl.FRAGRANCIAS, page),
-  //   // ...await extractProductLinksFromPage(ProductTypeUrl.PRESENTES, page),
-  // ]);
+  let pageLinkPromises: Promise<string[]>[] | null = Object.values(ProductTypeUrl)
+    .map(url => extractProductLinksFromPage(url, browser));
+
+  (await Promise.all(pageLinkPromises))
+    .forEach(linkArr => {
+      linkArr.forEach(link => productLinks?.add(link))
+    });
+
+  pageLinkPromises = null;
+
+  logger.info(`Product URLs: ${productLinks.size}`)
+  console.timeEnd('get_urls');
 
   const exploredUrlVariants = new Set<string>();
 
-  // for await (const url of productLinks) {
-  //   console.log(url);
-  //   /**
-  //    * Todo:
-  //    * - buscar categoria
-  //    * - obter todas as imagens
-  //    * - baixar imagens localmente e alterar link pelo id da imagem
-  //    * - reduce para agregar as variações em produtos
-  //    * - fazer o unzip de products.json e das imagens e fazer o stream para a api
-  //    * - fazer o upload das imagens para um bucket do s3 e inserir a url no lugar do id da imagem
-  //    * - implementar tratamento de errors com notificacao de falhas
-  //    * 
-  //    */
-  //   const productData = await extractProductDataFromPage(url, page);
-  //   products.set(productData.sku, productData);
+  console.time('extract_roducts')
 
-  //   console.log(productData)
-  // }
+  for await (const url of productLinks) {
+    const urlId = getUniqueProductUrlId(url);
 
-  // console.log(products.size)
+    if (exploredUrlVariants.has(urlId)) {
+      logger.warn(`skip: (${urlId}) ${url}`);
+      continue;
+    }
 
-  // fix: dont save file
-  // let data = JSON.stringify(products.values(), null, 2);
-  // await fs.writeFile('products.json', data);
+    logger.info('-------------------------');
 
-  await extractProductDataFromPage("https://www.marykay.com.br/pt-br/products/makeup/face/blush-chromafusion-mary-kay-rouge-rose-99010454", page, exploredUrlVariants)
+    /**
+     * Todo:
+     * - save on .json
+     * - upload to backend
+     * 
+     * Next:
+     * - tratar imagens, enviar para s3 e substituir url
+     * - implementar tratamento de errors com notificação de falhas
+     * - indexar dados com o algolia
+     */
+    const { product: productData, urls } = await extractProductDataFromPage(url, browser);
+
+    products.set(productData.sku, productData);
+    urls.map(u => exploredUrlVariants.add(u));
+
+    logger.info(`Product: ${productData.title}; Variations: ${productData.variations.length} \n`)
+  }
+  console.timeEnd('extract_roducts')
+  
+  productLinks = null;
   await browser.close();
+
+  console.time('SAVE_PRODUCTS');
+  
+  const filePath = path.join(__dirname, '..', 'output', getFileName('products'));
+
+  logger.info(`Save ${products.size} products into: ${filePath}`);
+
+  const jsonProducts = JSON.stringify({
+    products: Array.from(products).map(p => p[1]),
+  })
+
+  await fs.writeFile(filePath, jsonProducts);
+  console.timeEnd('SAVE_PRODUCTS')
+
+  process.exit();
 }
 
 startTracking();
