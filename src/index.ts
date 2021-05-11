@@ -1,17 +1,16 @@
 import fs from 'fs/promises'
-import fastJson from 'fast-json-stringify';
 import path from 'path'
 
 import { configureBrowser } from './configureBrowser'
 import { ProductTypeUrl } from './config';
 import { extractProductLinksFromPage } from './extractors/extractProductLinksFromPage';
-import { extractProductDataFromPage } from './extractors/extractProductDataFromPage';
+import { extractProductDataFromPage, IProductData } from './extractors/extractProductDataFromPage';
 import { logger } from './utils/logger';
-import { hashText } from './utils/hashText';
 import { getUniqueProductUrlId } from './utils/getUniqueProductUrlId';
 import { getFileName } from './utils/getFileName';
+import { hashText } from './utils/hashText';
 
-const products = new Map();
+const products = new Map<string, IProductData>();
 
 const startTracking = async () => {
   console.time('get_urls')
@@ -32,6 +31,7 @@ const startTracking = async () => {
   console.timeEnd('get_urls');
 
   const exploredUrlVariants = new Set<string>();
+  const categories = new Map<string, string>();
 
   console.time('extract_roducts')
 
@@ -46,20 +46,22 @@ const startTracking = async () => {
     logger.info('-------------------------');
 
     /**
-     * Todo:
-     * - save on .json
-     * - upload to backend
-     * 
-     * Next:
-     * - tratar imagens, enviar para s3 e substituir url
-     * - implementar tratamento de errors com notificação de falhas
-     * - indexar dados com o algolia
+     * todo:
+     * - tratar imagens
+     * - implementar tratamento de errors e re-tentativas
      */
-    const { product: productData, urls } = await extractProductDataFromPage(url, browser);
+    const data = await extractProductDataFromPage(url, browser);
 
-    products.set(productData.sku, productData);
+    if (!data) {
+      logger.warn(`pagina invalido: ${url}`);
+      continue;
+    }
+
+    const { product: productData, urls } = data;
+
+    products.set(productData.unique, productData);
     urls.map(u => exploredUrlVariants.add(u));
-
+    categories.set(hashText(productData.category), productData.category);
     logger.info(`Product: ${productData.title}; Variations: ${productData.variations.length} \n`)
   }
   console.timeEnd('extract_roducts')
@@ -68,16 +70,24 @@ const startTracking = async () => {
   await browser.close();
 
   console.time('SAVE_PRODUCTS');
-  
-  const filePath = path.join(__dirname, '..', 'output', getFileName('products'));
+
+  const fileName = getFileName('products')
+  const filePath = path.join(__dirname, '..', 'output', fileName);
 
   logger.info(`Save ${products.size} products into: ${filePath}`);
 
   const jsonProducts = JSON.stringify({
     products: Array.from(products).map(p => p[1]),
+    categories: Array.from(categories).map(c => ({ unique: c[0], name: c[1] })),
   })
 
   await fs.writeFile(filePath, jsonProducts);
+
+  // await fileUploader({ 
+  //   fileJson: jsonProducts, 
+  //   fileName 
+  // })
+
   console.timeEnd('SAVE_PRODUCTS')
 
   process.exit();

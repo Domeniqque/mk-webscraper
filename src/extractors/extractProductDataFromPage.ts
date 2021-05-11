@@ -1,30 +1,31 @@
 import { Browser, Page } from "puppeteer";
 import cheerio from "cheerio";
+
 import { hashText } from "../utils/hashText";
 import { BASE_TARGET_URL } from "../config";
 import { logger } from "../utils/logger";
 import { getUniqueProductUrlId } from "../utils/getUniqueProductUrlId";
+import { imageUploader } from "../utils/imageUploader";
 
-interface IVariationData {
+export interface IVariationData {
   size: string;
   sku: string;
   price: number;
+  pageUrl: string;
+  images: string[];
   color: {
     name: string;
     value: string;
   };
-  images: string[];
 }
 
-interface IProductData {
+export interface IProductData {
   unique: string;
-  sku: string;
   title: string;
   summary: string;
   content: string;
   category: string;
   variations: IVariationData[];
-  pageUrl: string;
 }
 
 const getContentPage = async (pageUrl: string, browser: Browser) => {
@@ -38,6 +39,17 @@ const getContentPage = async (pageUrl: string, browser: Browser) => {
       page = await browser.newPage();
     }
 
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setRequestInterception(true);
+    
+    page.on('request', (req) => {
+      if(['stylesheet', 'font', 'image'].includes(req.resourceType())){
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
     logger.info(`getContentPage: ${pageUrl}`);
 
     await page.goto(pageUrl, { waitUntil: 'domcontentloaded' });
@@ -50,20 +62,19 @@ const getContentPage = async (pageUrl: string, browser: Browser) => {
 
     const $ = cheerio.load(productDetailsHtml);
 
-    await page.close();
-
     return { $, category, summary };
   } catch (err) {
     logger.error(err, `getContentPage: ${pageUrl}`);
-    await page.close();
-
+    
     if (attempts > 3) {
       throw err;
     }
+  } finally {
+    await page.close();
   }
 }
 
-const getVariantData = (pageUrl: string, $: cheerio.Root) => {
+const getVariantData = async (pageUrl: string, $: cheerio.Root) => {
   const $color = $('ul.color-list a').first();
 
   const color = {
@@ -72,18 +83,30 @@ const getVariantData = (pageUrl: string, $: cheerio.Root) => {
   }
 
   const price = $('input[type="hidden"]#PDP-ProductPrice').val();
+  const productId = $('input[type="hidden"]#PDP-ProductID').val()?.trim();
   
-  const imagesUrls: string[] = $('ul.thumbnails.thumbnails_hide a').map((_, link) => {
-    const url: string = $(link).prop('href');
-    return url.startsWith('https:') ? url?.trim() : `https:${url}`?.trim(); 
-  }).get()
+  const imagesUrlsOrigin: string[] = $('ul.thumbnails.thumbnails_hide a')
+    .map((_, link) => {
+      const url: string = $(link).prop('href');
+      return url.startsWith('https:') ? url : `https:${url}`; 
+    })
+    .get()
+    .filter(Boolean)
+
+  const imagesPromise = imagesUrlsOrigin.map((imgUrl) => imageUploader(imgUrl));
+
+  const imageUrls = await Promise.all(imagesPromise);
+
+  const size = $('.included-sizes').text()?.trim().replace(/\s/ig, '');
+  const controlRange = $('.controlcontainer.cf a').first().text()?.trim();
 
   const variation: IVariationData = {
-    size: $('.included-sizes').text()?.trim(),
-    sku: pageUrl.split('-').pop()?.trim() as string,
+    size: controlRange.length > 0 ? `${size}, ${controlRange}` : size,
+    sku: productId, //pageUrl.split('-').pop()?.trim() as string,
     price: Number(price?.trim()),
+    images: Array.from(new Set([...imageUrls])),
     color,
-    images: Array.from(new Set([...imagesUrls])),
+    pageUrl,
   }
 
   return variation;
@@ -97,37 +120,41 @@ export const extractProductDataFromPage = async (pageUrl: string, browser: Brows
   }
 
   const { $, category, summary } = contentPage;
-
-  const productId = $('input[type="hidden"]#PDP-ProductID').val()?.trim();
+  
   const productName = $('.details h1').text()?.trim();
+
+  if (!productName) return;
+
   const content = $('.tab.resp-tab-content.resp-tab-content-active p').text()?.trim();
 
-  const $colorsVariants = $('ul.color-list a');
-  const variantUrls = $colorsVariants.map((_, el) => `${BASE_TARGET_URL}${$(el).prop("href")}`).get() as string[];
+  const rangeVariants = $('.controlcontainer.cf a').map((_, el) => `${BASE_TARGET_URL}${$(el).prop("href")}`).get() as string[]
+  const colorVariantsUrls = $('ul.color-list a').map((_, el) => `${BASE_TARGET_URL}${$(el).prop("href")}`).get() as string[];
+
+  const variantUrls = [...colorVariantsUrls, ...rangeVariants].filter(Boolean);
 
   const variations: IVariationData[] = []
-  
-  for (const { variationUrl, i} of variantUrls.map((variationUrl, i) => ({ variationUrl, i }))) {
-    const isFirst = i === 0;
-    const $variationContent = isFirst ? $ : (await getContentPage(variationUrl, browser))?.$;
 
-    if (!$variationContent) {
-      throw new Error(`getContentPage: variationUrl: ${variationUrl}: Conteúdo do produto variante invalido ou nao encontrado`)
+  if (variantUrls.length === 0) {
+    variations.push(await getVariantData(pageUrl, $));
+  } else {
+    for (const variationUrl of variantUrls) {
+      const $variationContent = (await getContentPage(variationUrl, browser))?.$;
+      
+      if (!$variationContent) {
+        throw new Error(`getContentPage: variationUrl: ${variationUrl}: Conteúdo do produto variante invalido ou nao encontrado`)
+      }
+      
+      variations.push(await getVariantData(variationUrl, $variationContent));
     }
-
-    const variationData = getVariantData(variationUrl, $variationContent);
-    variations.push(variationData);
   }
 
   const product: IProductData = {
     unique: hashText(productName),
-    sku: productId as string,
     title: productName,
     summary,
     content,
     category,
     variations,
-    pageUrl
   }
 
   return { 

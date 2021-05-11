@@ -4,17 +4,19 @@ import { ProductTypeUrl } from "../config";
 
 export const extractProductLinksFromPage = async (pageUrl: ProductTypeUrl, browser: Browser) => {
   const page = await browser.newPage();
-  await page.goto(pageUrl, { waitUntil: 'domcontentloaded'});
 
+  await page.setViewport({ width: 1920, height: 1080 });
   await page.setRequestInterception(true);
-
-  page.on('request', (request) => {
-    if (['image', 'websocket', 'font'].includes(request.resourceType())) {
-      return request.abort()
+  
+  page.on('request', (req) => {
+    if (['stylesheet', 'font', 'image'].includes(req.resourceType())){
+      req.abort();
     } else {
-      return request.continue()
+      req.continue();
     }
-  })
+  });
+
+  await page.goto(pageUrl, { waitUntil: 'domcontentloaded'});
 
   const anchorSelector = await page.evaluate(() => [
     // carousel
@@ -23,8 +25,10 @@ export const extractProductLinksFromPage = async (pageUrl: ProductTypeUrl, brows
     ...Array.from(document.querySelectorAll<HTMLLinkElement>('a.product-name')).map(a => a.href),
   ]);
 
+  await page.close();
+
   const productLinks: string[] = anchorSelector
-    .filter(link => !!link.toString().match(/\/products/ig))
+    .filter(link => !!link.toString().match(/\/products/ig));
 
   return productLinks
 }
