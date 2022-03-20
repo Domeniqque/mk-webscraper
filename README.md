@@ -1,10 +1,10 @@
 # MK Web Scraper
 
-A tool to extract product information of the Mary Kay's public site. 
+A tool to extract products informations of the [MK public site](https://www.marykay.com.br/). 
 
-It download product images and meta data like, price, description and product types.
+It will download all the products and meta data like, price, description, colors, and product types in a well structured and versioned `.json` file.
 
-Automatic upload each image and the final versioned `.json` file to your AWS S3 if you want it.
+If you want, you'll be able to automatic upload each image and the final `.json` file to your AWS S3.
 
 
 > We cannot be held responsible for how you will use this tool. 
