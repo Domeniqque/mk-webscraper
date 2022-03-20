@@ -3,12 +3,12 @@ import sharp from 'sharp';
 import { basename, extname } from "path"
 import AWS from 'aws-sdk'
 
-import { AWS_CREDENTIALS, IMG_UPLOADER } from '../config';
+import { AWS_CREDENTIALS, IMG_UPLOADER, SHOULD_UPLOAD_S3 } from '../config';
 
 const S3 = new AWS.S3();
 
 export const imageUploader = async (imgUrl: string) => {
-  if (!IMG_UPLOADER.uploadImage) {
+  if (!SHOULD_UPLOAD_S3) {
     return imgUrl
   }
   

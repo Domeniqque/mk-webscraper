@@ -2,13 +2,14 @@ import fs from 'fs/promises'
 import path from 'path'
 
 import { configureBrowser } from './configureBrowser'
-import { ProductTypeUrl } from './config';
+import { AWS_CREDENTIALS, SHOULD_UPLOAD_S3, ProductTypeUrl } from './config';
 import { extractProductLinksFromPage } from './extractors/extractProductLinksFromPage';
 import { extractProductDataFromPage, IProductData } from './extractors/extractProductDataFromPage';
 import { logger } from './utils/logger';
 import { getUniqueProductUrlId } from './utils/getUniqueProductUrlId';
 import { getFileName } from './utils/getFileName';
 import { hashText } from './utils/hashText';
+import { fileUploader } from './utils/fileUploader';
 
 const products = new Map<string, IProductData>();
 
@@ -83,10 +84,13 @@ const startTracking = async () => {
 
   await fs.writeFile(filePath, jsonProducts);
 
-  // await fileUploader({ 
-  //   fileJson: jsonProducts, 
-  //   fileName 
-  // })
+  if (!!SHOULD_UPLOAD_S3) {
+    console.log(AWS_CREDENTIALS)
+    await fileUploader({ 
+      fileJson: jsonProducts, 
+      fileName 
+    })
+  }
 
   console.timeEnd('SAVE_PRODUCTS')
 

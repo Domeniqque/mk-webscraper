@@ -64,7 +64,7 @@ const getContentPage = async (pageUrl: string, browser: Browser) => {
 
     return { $, category, summary };
   } catch (err) {
-    logger.error(err, `getContentPage: ${pageUrl}`);
+    logger.error(err as any, `getContentPage: ${pageUrl}`);
     
     if (attempts > 3) {
       throw err;

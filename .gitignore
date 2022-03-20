@@ -4,4 +4,5 @@ output/*
 puppeteer/*
 !puppeteer/.gitkeep
 !output/.gitkeep
+!output/output-example.json
 .env

@@ -22,5 +22,6 @@ export const IMG_UPLOADER= {
   width: parseInt(process.env.IMG_WIDTH || '200', 10),
   height: parseInt(process.env.IMG_HEIGHT || '200', 10),
   quality: parseInt(process.env.IMG_QUALITY || '50', 10),
-  uploadImage: process.env.IMG_UPLOAD_TO_S3 || true,
 }
+
+export const SHOULD_UPLOAD_S3 = process.env.IMG_UPLOAD_TO_S3 || false;
