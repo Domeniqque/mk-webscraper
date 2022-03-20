@@ -2,9 +2,8 @@
   "name": "webscrapper",
   "version": "1.0.0",
   "main": "src/index.js",
-  "author": "",
+  "author": "Domeniqque <domeniqque@hotmail.com>",
   "license": "MIT",
-  "private": true,
   "scripts": {
     "start:dev": "ts-node src/index.ts --transpile-only | pino-pretty",
     "start": "node build/index.js | pino-pretty",
@@ -14,21 +13,21 @@
   "dependencies": {
     "aws-sdk": "^2.901.0",
     "cheerio": "^1.0.0-rc.6",
-    "dotenv": "^9.0.0",
+    "dotenv": "^9.0.2",
     "js-sha256": "^0.9.0",
-    "node-fetch": "^2.6.1",
-    "pino": "^6.11.3",
-    "pino-pretty": "^4.7.1",
+    "node-fetch": "^2.6.7",
+    "pino": "^6.14.0",
+    "pino-pretty": "^4.8.0",
     "puppeteer": "^8.0.0",
-    "sharp": "^0.28.1"
+    "sharp": "^0.28.3"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.28",
-    "@types/node": "^15.0.1",
+    "@types/node": "^15.14.9",
     "@types/node-fetch": "^2.5.10",
-    "@types/pino": "^6.3.8",
+    "@types/pino": "^6.3.12",
     "@types/puppeteer": "^5.4.3",
-    "@types/sharp": "^0.28.0",
+    "@types/sharp": "^0.28.6",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
   }
