@@ -1,8 +1,15 @@
 # MK Web Scraper
 
-A tool to extract data information of the Mary Kay public site and upload to AWS S3 if you want it.
+A tool to extract product information of the Mary Kay's public site. 
 
-We cannot be held responsible for your use of this tool.
+It download product images and meta data like, price, description and product types.
+
+Automatic upload each image and the final versioned `.json` file to your AWS S3 if you want it.
+
+
+> We cannot be held responsible for how you will use this tool. 
+
+> This tool was used for study purposes only.
 
 ## Instalation
 
@@ -19,3 +26,5 @@ If you want to upload the data to your AWS S3 bucket, you'll need to set your cr
 ```bash 
 cp .env.example .env
 ```
+
+Before the upload, all images will be optimized using the [sharp](https://github.com/lovell/sharp) package.  
