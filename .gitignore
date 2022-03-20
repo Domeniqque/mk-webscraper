@@ -4,3 +4,4 @@ output/*
 puppeteer/*
 !puppeteer/.gitkeep
 !output/.gitkeep
+.env
