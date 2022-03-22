@@ -7,7 +7,7 @@ It will download all the products and meta data like, price, description, colors
 If you want, you'll be able to automatic upload each image and the final `.json` file to your AWS S3.
 
 
-> We cannot be held responsible for how you will use this tool. 
+> I cannot be held responsible for how you will use this tool. Please read the [LICENSE](LICENSE) file.
 
 > This tool was used for study purposes only.
 
