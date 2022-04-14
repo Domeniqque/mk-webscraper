@@ -2,7 +2,7 @@
 
 A tool to extract products informations of the [MK public site](https://www.marykay.com.br/). 
 
-It will download all the products and meta data like, price, description, colors, and product types in a well structured and versioned `.json` file.
+It will download all the products and meta data like, price, description, colors, and product types in a well structured and versioned `.json` file ([example](./output/output-example.json)).
 
 If you want, you'll be able to automatic upload each image and the final `.json` file to your AWS S3.
 
